@@ -6,6 +6,7 @@ class FocusSession(models.Model):
     start_time = models.DateTimeField(auto_now_add=True)
     end_time = models.DateTimeField(null=True, blank=True)
     is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True, null=True)
 
     def duration(self):
         if self.end_time:
@@ -13,4 +14,4 @@ class FocusSession(models.Model):
         return None
 
     def __str__(self):
-        return f"Session by {self.user.email} at {self.start_time}"
+        return f"Session by {self.user.email} - {'Active' if self.is_active else 'Completed '}"

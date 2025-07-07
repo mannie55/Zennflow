@@ -6,6 +6,8 @@ from .views import (
     SessionHistoryView,
 )
 
+app_name = "focus_sessions"
+
 urlpatterns = [
     path('start/', StartSessionView.as_view(), name='start-session'),
     path('stop/', StopSessionView.as_view(), name='stop-session'),
