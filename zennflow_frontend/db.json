@@ -1,0 +1,32 @@
+{
+  "tasks": [
+    {
+      "id": "39e9",
+      "title": "many tasksdfd",
+      "description": null,
+      "completed": false
+    },
+    {
+      "id": "d28b",
+      "title": "dfsldf",
+      "description": null,
+      "completed": false
+    },
+    {
+      "id": "7b0a",
+      "title": "dfd",
+      "description": null,
+      "completed": false
+    }
+  ],
+  "sessions": [
+    {
+      "id": 1,
+      "sessionType": "Focus",
+      "duration": 25,
+      "startTime": "2025-11-21t09:10:12Z",
+      "endTime": "2025-11-21T09:35:12Z",
+      "status": "completed"
+    }
+  ]
+}
