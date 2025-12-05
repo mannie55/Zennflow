@@ -41,35 +41,56 @@ const TaskList = ({ tasks, setTasks }) => {
       {tasks.map((task) => (
         <li
           key={task.id}
-          className="flex justify-between items-center list-none p-0 m-3 w-full h-8 group"
+          className="flex justify-between items-center list-none p-0 m-3 w-full h-8 group relative"
           onMouseEnter={() => setTaskId(task.id)}
           onMouseLeave={() => setTaskId(null)}
         >
-          <div>
+          <div className="flex items-center">
             <input
               type="checkbox"
               checked={task.completed}
               onChange={() => handleTaskCheck(task.id)}
+              className="mr-2"
             />
+
             {editingId === task.id ? (
               <input
                 ref={inputRef}
-                className="m-2 border-b border-gray-300 outline-none"
+                className="m-2 border-b border-gray-300 outline-none bg-transparent w-full"
                 value={editValue}
                 onChange={(e) => setEditValue(e.target.value)}
                 onKeyDown={(e) => handleUpdate(e, task.id)}
               />
             ) : (
-              <span
-                className={`m-2 ${
-                  task.completed ? "line-through opacity-50" : ""
-                }`}
-              >
-                {task.title}
-              </span>
+              <div className="m-2">
+                <span
+                  onDoubleClick={() => {
+                    setEditingId(task.id);
+                    setEditValue(task.title);
+                    setMenuOpen(null);
+                  }}
+                  className={`block cursor-text ${
+                    task.completed ? "line-through opacity-50" : ""
+                  }`}
+                >
+                  {task.title}
+                </span>
+
+                {task.title ? (
+                  <p
+                    onDoubleClick={() => {
+                      setEditingId(task.id);
+                      setEditValue(task.title);
+                      setMenuOpen(null);
+                    }}
+                    className="text-sm text-gray-500 cursor-text"
+                  ></p>
+                ) : null}
+              </div>
             )}
           </div>
-          {taskId === task.id && (
+
+          {taskId === task.id && editingId === null && (
             <button
               onClick={() => setMenuOpen(task.id)}
               className="flex justify-center items-center font-bold hover:bg-gray-50 pb-2 mr-3 w-8 h-8 rounded-full"
@@ -77,6 +98,7 @@ const TaskList = ({ tasks, setTasks }) => {
               <span className="text-center">...</span>
             </button>
           )}
+
           {menuOpen === task.id && (
             <div
               ref={menuRef}

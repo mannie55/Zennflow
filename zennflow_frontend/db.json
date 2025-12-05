@@ -1,14 +1,8 @@
 {
   "tasks": [
     {
-      "id": "39e9",
-      "title": "many tasksdfd",
-      "description": null,
-      "completed": false
-    },
-    {
       "id": "d28b",
-      "title": "dfsldf",
+      "title": "new task good",
       "description": null,
       "completed": false
     },
@@ -21,12 +15,137 @@
   ],
   "sessions": [
     {
-      "id": 1,
-      "sessionType": "Focus",
+      "id": "4",
+      "sessionTask": null,
       "duration": 25,
-      "startTime": "2025-11-21t09:10:12Z",
-      "endTime": "2025-11-21T09:35:12Z",
-      "status": "completed"
+
+      "startTime": "2025-11-21T10:00:00Z",
+      "endTime": "2025-11-21T10:25:00Z",
+      "focusedTime": 25,
+      "completed": true
+    },
+    {
+      "endTime": "2025-12-01T08:38:21.205Z",
+      "focusedTime": 25,
+      "completed": true,
+      "id": "9c63"
+    },
+    {
+      "id": "2701",
+      "sessionTask": null,
+      "duration": 25,
+      "startTime": "2025-12-01T08:50:34.320Z",
+      "endTime": null,
+      "focusedTime": 0,
+      "completed": false
+    },
+    {
+      "id": "131d",
+      "sessionTask": null,
+      "duration": 25,
+      "startTime": "2025-12-01T08:52:52.044Z",
+      "endTime": null,
+      "focusedTime": 0,
+      "completed": false
+    },
+    {
+      "id": "b24b",
+      "sessionTask": null,
+      "duration": 50,
+      "startTime": "2025-12-01T09:00:24.547Z",
+      "endTime": null,
+      "focusedTime": 0,
+      "completed": false
+    },
+    {
+      "id": "e1af",
+      "sessionTask": null,
+      "duration": "2",
+      "startTime": "2025-12-01T09:17:47.500Z",
+      "endTime": null,
+      "focusedTime": 0,
+      "completed": false
+    },
+    {
+      "id": "34d7",
+      "sessionTask": null,
+      "duration": 25,
+      "startTime": "2025-12-01T09:18:38.017Z",
+      "endTime": null,
+      "focusedTime": 0,
+      "completed": false
+    },
+    {
+      "id": "1502",
+      "sessionTask": null,
+      "duration": "2",
+      "startTime": "2025-12-01T09:18:49.051Z",
+      "endTime": null,
+      "focusedTime": 0,
+      "completed": false
+    },
+    {
+      "id": "54f9",
+      "sessionTask": null,
+      "duration": 40,
+      "startTime": "2025-12-01T09:22:39.046Z",
+      "endTime": null,
+      "focusedTime": 0,
+      "completed": false
+    },
+    {
+      "id": "1fe2",
+      "sessionTask": null,
+      "duration": 25,
+      "startTime": "2025-12-01T11:27:12.955Z",
+      "endTime": null,
+      "focusedTime": 0,
+      "completed": false
+    },
+    {
+      "id": "dbcf",
+      "sessionTask": null,
+      "duration": 25,
+      "startTime": "2025-12-01T11:29:22.975Z",
+      "endTime": null,
+      "focusedTime": 0,
+      "completed": false
+    },
+    {
+      "id": "14d5",
+      "sessionTask": null,
+      "duration": 25,
+      "startTime": "2025-12-01T11:30:43.257Z",
+      "endTime": null,
+      "focusedTime": 0,
+      "completed": false
+    },
+    {
+      "id": "b473",
+      "sessionTask": null,
+      "duration": 25,
+      "startTime": "2025-12-01T11:55:39.190Z",
+      "endTime": "2025-12-01T12:20:53.620Z",
+      "focusedTime": 25,
+      "completed": true
+    },
+    {
+      "id": "88e6",
+      "sessionTask": null,
+      "duration": 25,
+      "startTime": "2025-12-01T16:38:21.204Z",
+      "endTime": null,
+      "focusedTime": 0,
+      "completed": false
+    },
+    {
+      "id": "f865",
+      "sessionTask": null,
+      "duration": 30,
+      "startTime": "2025-12-03T08:34:56.355Z",
+      "endTime": null,
+      "focusedTime": 0,
+      "completed": false
     }
   ]
 }

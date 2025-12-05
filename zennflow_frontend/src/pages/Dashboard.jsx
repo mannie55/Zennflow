@@ -1,8 +1,10 @@
+import LiveClock from "../components/LiveClock";
+
 const Dashboard = () => {
   return (
     <div className="border border-red-500">
       <div className="py-20 text-center bg-dark-60">
-        <h1>8:00pm</h1>
+        <LiveClock />
         <h2>Enjoy the present moment</h2>
       </div>
       <div>

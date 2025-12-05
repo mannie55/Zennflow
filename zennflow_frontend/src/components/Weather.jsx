@@ -1,3 +1,5 @@
+import useSession from "../hooks/usePomodoroService";
+
 const Weather = () => {
   return (
     <div className="inline-block w-1/2 text-right">

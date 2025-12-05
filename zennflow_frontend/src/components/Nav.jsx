@@ -16,6 +16,7 @@ const Header = () => {
           )}
         </nav>
       </div>
+
       <Weather />
     </div>
   );
