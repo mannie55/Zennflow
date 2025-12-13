@@ -1,20 +1,17 @@
-import { Link, useLocation } from "react-router-dom";
 import Weather from "./Weather";
 
-const Header = () => {
-  const location = useLocation();
-  const currentPath = location.pathname;
-
+const Header = ({ setPage, currentPage }) => {
   return (
     <div className="border border-black text-left">
       <div className="border border-black inline-block w-1/2 ">
-        <nav className="">
-          {currentPath !== "/pomodorro" && (
-            <Link to="/pomodorro">
-              <button>focus</button>
-            </Link>
+        <header>
+          {currentPage === "dashboard" && (
+            <button onClick={() => setPage("focus")}>Focus Mode</button>
           )}
-        </nav>
+          {currentPage === "focus" && (
+            <button onClick={() => setPage("dashboard")}>Back Home</button>
+          )}
+        </header>
       </div>
 
       <Weather />

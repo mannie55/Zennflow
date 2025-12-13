@@ -7,8 +7,15 @@
       "completed": false
     },
     {
-      "id": "7b0a",
-      "title": "dfd",
+      "id": "aa03",
+      "title": "new task",
+      "description": null,
+      "completed": false
+    },
+    {
+      "id": "a024",
+      "_tempId": "0.gamyychjxy",
+      "title": "new task",
       "description": null,
       "completed": false
     }
@@ -18,7 +25,6 @@
       "id": "4",
       "sessionTask": null,
       "duration": 25,
-
       "startTime": "2025-11-21T10:00:00Z",
       "endTime": "2025-11-21T10:25:00Z",
       "focusedTime": 25,
@@ -146,6 +152,15 @@
       "endTime": null,
       "focusedTime": 0,
       "completed": false
+    },
+    {
+      "id": "2c2e",
+      "sessionTask": null,
+      "duration": 25,
+      "startTime": "2025-12-08T10:35:04.749Z",
+      "endTime": "2025-12-08T11:03:43.406Z",
+      "focusedTime": 25,
+      "completed": true
     }
   ]
 }

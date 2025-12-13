@@ -1,0 +1,23 @@
+{
+  "manifest_version": 3,
+  "name": "ZennFlow",
+  "description": "Focus better with a clean dashboard and a dedicated focus mode.",
+  "version": "1.0.0",
+  "action": {
+    "default_title": "ZennFlow"
+  },
+  "chrome_url_overrides": {
+    "newtab": "./dist/index.html"
+  },
+  "background": {
+    "service_worker": "background.js",
+    "type": "module"
+  },
+  "permissions": [],
+  "host_permissions": [],
+  "icons": {
+    "16": "./dist/icons.png",
+    "48": "./dist/icons.png",
+    "128": "./dist/icons.png"
+  }
+}
