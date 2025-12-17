@@ -1,15 +1,19 @@
 import Weather from "./Weather";
 
-const Header = ({ setPage, currentPage }) => {
+const Nav = ({ setPage, currentPage }) => {
   return (
-    <div className="border border-black text-left">
-      <div className="border border-black inline-block w-1/2 ">
+    <div className="flex items-center justify-between p-4 w-full">
+      <div>
         <header>
           {currentPage === "dashboard" && (
-            <button onClick={() => setPage("focus")}>Focus Mode</button>
+            <button className="font-bold hover:opacity-80" onClick={() => setPage("focus")}>
+              Focus Mode
+            </button>
           )}
           {currentPage === "focus" && (
-            <button onClick={() => setPage("dashboard")}>Back Home</button>
+            <button className="font-bold hover:opacity-80" onClick={() => setPage("dashboard")}>
+              Back Home
+            </button>
           )}
         </header>
       </div>
@@ -19,4 +23,4 @@ const Header = ({ setPage, currentPage }) => {
   );
 };
 
-export default Header;
+export default Nav;

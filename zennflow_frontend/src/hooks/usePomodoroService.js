@@ -1,21 +1,15 @@
 import { useEffect, useRef, useState } from "react";
-import sessionService from "../services/sessions";
+import useGetSessions from "./useGetSessions";
+import useCreateSession from "./useCreateSession";
+import useUpdateSession from "./useUpdateSession";
 
 const useSession = ({ isRunning, mode, focusDuration }) => {
   const [session, setSession] = useState(null);
-  const [allSessions, setAllSessions] = useState([]);
   const previousModeRef = useRef(mode);
 
-  useEffect(() => {
-    const fetchSessions = async () => {
-      try {
-        const sessions = await sessionService.getAll();
-        setAllSessions(sessions);
-      } catch (err) {
-        console.error("Failed to fetch sessions:", err);
-      }
-    };
-  });
+  const { data: allSessions } = useGetSessions();
+  const createSessionMutation = useCreateSession();
+  const updateSessionMutation = useUpdateSession();
 
   // create a session when a focus period starts
   useEffect(() => {
@@ -33,7 +27,7 @@ const useSession = ({ isRunning, mode, focusDuration }) => {
         completed: false,
       };
       try {
-        const res = await sessionService.create(payload);
+        const res = await createSessionMutation.mutateAsync(payload);
         setSession(res);
       } catch (err) {
         console.error("Failed to create session:", err);
@@ -41,7 +35,7 @@ const useSession = ({ isRunning, mode, focusDuration }) => {
     };
 
     createSession();
-  }, [isRunning, mode, focusDuration, session]);
+  }, [isRunning, mode, focusDuration, session, createSessionMutation]);
 
   useEffect(() => {
     const previousMode = previousModeRef.current;
@@ -57,7 +51,7 @@ const useSession = ({ isRunning, mode, focusDuration }) => {
             completed: true,
           };
 
-          const updated = await sessionService.update(session.id, payload);
+          const updated = await updateSessionMutation.mutateAsync(payload);
           setSession(updated);
         } catch (err) {
           console.error("Failed to update session:", err);
@@ -66,7 +60,7 @@ const useSession = ({ isRunning, mode, focusDuration }) => {
       updateSession();
     }
     previousModeRef.current = mode;
-  }, [mode, session, focusDuration]);
+  }, [mode, session, focusDuration, updateSessionMutation]);
 
   return { session, allSessions };
 };

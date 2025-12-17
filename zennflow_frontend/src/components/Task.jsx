@@ -1,12 +1,9 @@
 import { useState } from "react";
-import useTasksWithLocalStorage from "../hooks/useTasksWithLocalStorage";
 import TaskForm from "./TaskForm";
 import TaskList from "./TaskList";
 
 const Task = () => {
   const [open, setOpen] = useState(false);
-  const { tasks, setTasks, syncStatus, addPendingTask } =
-    useTasksWithLocalStorage();
 
   return (
     <div className="fixed bottom-4 right-4 z-50">
@@ -23,22 +20,8 @@ const Task = () => {
           </div>
 
           <div className="space-y-2">
-            <div>
-              Sync Status:{" "}
-              <span
-                className={
-                  syncStatus === "synced" ? "text-green-500" : "text-yellow-500"
-                }
-              >
-                {syncStatus}
-              </span>
-            </div>
-            <TaskForm
-              tasks={tasks}
-              setTasks={setTasks}
-              addPendingTask={addPendingTask}
-            />
-            <TaskList tasks={tasks} setTasks={setTasks} />
+            <TaskForm />
+            <TaskList />
           </div>
         </div>
       )}
@@ -53,3 +36,4 @@ const Task = () => {
 };
 
 export default Task;
+

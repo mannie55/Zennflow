@@ -1,9 +1,15 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 const usePomodoroState = () => {
-  const [mode, setMode] = useState("focus"); // "focus" | "break"
-  const [focusDuration, setFocusDuration] = useState(25); // in seconds
-  const [breakDuration, setBreakDuration] = useState(5);
+  const [mode, setMode] = useState(
+    () => localStorage.getItem("zennflow_mode") || "focus"
+  );
+  const [focusDuration, setFocusDuration] = useState(
+    () => parseInt(localStorage.getItem("zennflow_focus_duration")) || 25
+  );
+  const [breakDuration, setBreakDuration] = useState(
+    () => parseInt(localStorage.getItem("zennflow_break_duration")) || 5
+  );
   const [totalFocus, setTotalFocus] = useState(0);
 
   const focusDurationInSeconds = focusDuration * 60;
@@ -21,6 +27,13 @@ const usePomodoroState = () => {
       setMode("focus");
     }
   };
+
+  // Persist settings
+  useEffect(() => {
+    localStorage.setItem("zennflow_mode", mode);
+    localStorage.setItem("zennflow_focus_duration", focusDuration);
+    localStorage.setItem("zennflow_break_duration", breakDuration);
+  }, [mode, focusDuration, breakDuration]);
 
   return {
     mode,

@@ -13,7 +13,7 @@
     "service_worker": "background.js",
     "type": "module"
   },
-  "permissions": [],
+  "permissions": ["storage", "alarms", "notifications"],
   "host_permissions": [],
   "icons": {
     "16": "./dist/icons.png",

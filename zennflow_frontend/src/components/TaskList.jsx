@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import useTasks from "../hooks/useTasks";
+import useGetTasks from "../hooks/useGetTasks";
 
 /* 
 menuOpen - for the three dot dropdown
@@ -10,11 +11,14 @@ menuRef - points to the dropdown dom node
 inputRef - points to the input when editing
 */
 
-const TaskList = ({ tasks, setTasks }) => {
+const TaskList = () => {
   const [menuOpen, setMenuOpen] = useState(null);
   const [taskId, setTaskId] = useState(null);
   const menuRef = useRef();
   const inputRef = useRef(null);
+
+  const { data: tasks, isLoading, isError } = useGetTasks();
+
   const {
     editingId,
     setEditingId,
@@ -23,7 +27,13 @@ const TaskList = ({ tasks, setTasks }) => {
     handleDelete,
     handleTaskCheck,
     handleUpdate,
-  } = useTasks(inputRef, tasks, setTasks);
+  } = useTasks(inputRef);
+
+  const enterEditMode = (task) => {
+    setEditingId(task.id);
+    setEditValue(task.title);
+    setMenuOpen(null);
+  };
 
   useEffect(() => {
     const handleClick = (e) => {
@@ -35,6 +45,14 @@ const TaskList = ({ tasks, setTasks }) => {
     document.addEventListener("mousedown", handleClick);
     return () => document.removeEventListener("mousedown", handleClick);
   }, []);
+
+  if (isLoading) {
+    return <div>Loading tasks...</div>;
+  }
+
+  if (isError) {
+    return <div>Error fetching tasks.</div>;
+  }
 
   return (
     <div>
@@ -49,7 +67,7 @@ const TaskList = ({ tasks, setTasks }) => {
             <input
               type="checkbox"
               checked={task.completed}
-              onChange={() => handleTaskCheck(task.id)}
+              onChange={() => handleTaskCheck(task)}
               className="mr-2"
             />
 
@@ -59,16 +77,12 @@ const TaskList = ({ tasks, setTasks }) => {
                 className="m-2 border-b border-gray-300 outline-none bg-transparent w-full"
                 value={editValue}
                 onChange={(e) => setEditValue(e.target.value)}
-                onKeyDown={(e) => handleUpdate(e, task.id)}
+                onKeyDown={(e) => handleUpdate(e, task)}
               />
             ) : (
               <div className="m-2">
                 <span
-                  onDoubleClick={() => {
-                    setEditingId(task.id);
-                    setEditValue(task.title);
-                    setMenuOpen(null);
-                  }}
+                  onDoubleClick={() => enterEditMode(task)}
                   className={`block cursor-text ${
                     task.completed ? "line-through opacity-50" : ""
                   }`}
@@ -78,11 +92,7 @@ const TaskList = ({ tasks, setTasks }) => {
 
                 {task.title ? (
                   <p
-                    onDoubleClick={() => {
-                      setEditingId(task.id);
-                      setEditValue(task.title);
-                      setMenuOpen(null);
-                    }}
+                    onDoubleClick={() => enterEditMode(task)}
                     className="text-sm text-gray-500 cursor-text"
                   ></p>
                 ) : null}
@@ -95,7 +105,7 @@ const TaskList = ({ tasks, setTasks }) => {
               onClick={() => setMenuOpen(task.id)}
               className="flex justify-center items-center font-bold hover:bg-gray-50 pb-2 mr-3 w-8 h-8 rounded-full"
             >
-              <span className="text-center">...</span>
+              ...
             </button>
           )}
 
@@ -105,17 +115,13 @@ const TaskList = ({ tasks, setTasks }) => {
               className="absolute text-left right-10 top-8 bg-white shadow-md rounded-md w-32 pt-2 z-20"
             >
               <button
-                onClick={() => handleDelete(task.id)}
+                onClick={() => handleDelete(task)}
                 className="block w-full text-left px-2 py-2 hover:bg-gray-200 rounded"
               >
                 Delete
               </button>
               <button
-                onClick={() => {
-                  setEditingId(task.id);
-                  setEditValue(task.title);
-                  setMenuOpen(null);
-                }}
+                onClick={() => enterEditMode(task)}
                 className="block w-full text-left px-2 py-1 hover:bg-gray-200 rounded"
               >
                 Edit

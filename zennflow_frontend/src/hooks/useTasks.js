@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
-import taskService from "../services/tasks";
+import useUpdateTask from "./useUpdateTask";
+import useDeleteTask from "./useDeleteTask";
 
 /**
  * useTasks - hook for task editing and optimistic updates
@@ -12,9 +13,6 @@ import taskService from "../services/tasks";
  * @param {Object} inputRef - React ref pointing to the editable input element.
  *   When `editingId` changes the hook will focus the input and move the
  *   cursor to the end.
- * @param {Array<Object>} tasks - Current array of task objects.
- *   Each task object should include at least `{ id, title, completed }`.
- * @param {Function} setTasks - State setter for the tasks array (from useState).
  *
  * Returns
  * @returns {Object} - An object containing:
@@ -27,7 +25,7 @@ import taskService from "../services/tasks";
  *   - `handleUpdate` (async fn): submits or cancels an edit using keyboard events
  *
  * Notes
- * - All server interactions use `taskService` and are performed asynchronously.
+ * - All server interactions use mutation hooks.
  * - The hook performs optimistic UI updates by updating local state after
  *   successful responses from the service.
  * - `handleUpdate` listens for `Enter` and `Escape` keys on the edit input.
@@ -35,12 +33,15 @@ import taskService from "../services/tasks";
  * Example
  * const inputRef = useRef(null)
  * const { editingId, setEditingId, editValue, setEditValue, handleDelete } =
- *   useTasks(inputRef, tasks, setTasks)
+ *   useTasks(inputRef)
  */
 
-const useTasks = (inputRef, tasks, setTasks) => {
+const useTasks = (inputRef) => {
   const [editingId, setEditingId] = useState(null);
   const [editValue, setEditValue] = useState("");
+
+  const updateTask = useUpdateTask();
+  const deleteTask = useDeleteTask();
 
   useEffect(() => {
     if (editingId !== null && inputRef.current) {
@@ -50,47 +51,23 @@ const useTasks = (inputRef, tasks, setTasks) => {
     }
   }, [editingId]);
 
-  const handleDelete = async (id) => {
-    console.log("id of task", id);
-
-    const task = tasks.find((t) => t.id === id);
-
-    try {
-      await taskService.remove(task);
-      setTasks(tasks.filter((t) => t.id !== task.id));
-    } catch (error) {
-      console.log(error);
-    }
+  const handleDelete = async (task) => {
+    deleteTask.mutate(task);
   };
 
-  const handleTaskCheck = async (id) => {
-    const task = tasks.find((task) => task.id === id);
-    console.log(task);
+  const handleTaskCheck = async (task) => {
     const newObject = {
       ...task,
       completed: !task.completed,
     };
-    try {
-      const response = await taskService.update(newObject);
-      setTasks(tasks.map((t) => (t.id !== response.id ? t : response)));
-    } catch (error) {
-      console.log(error);
-    }
+    updateTask.mutate(newObject);
   };
 
-  const handleUpdate = async (e, id) => {
+  const handleUpdate = async (e, task) => {
     if (e.key === "Enter") {
       //submit update
-      const task = tasks.find((t) => t.id === id);
       const updated = { ...task, title: editValue };
-
-      try {
-        const data = await taskService.update(updated);
-        setTasks(tasks.map((t) => (t.id === data.id ? data : t)));
-      } catch (error) {
-        console.log(error);
-      }
-
+      updateTask.mutate(updated);
       setEditingId(null);
     }
 
