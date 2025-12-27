@@ -34,9 +34,33 @@ const updateTask = asyncHandler(async (request, response) => {
   response.json(updatedTask);
 });
 
+const syncTasks = asyncHandler(async (request, response) => {
+  const tasks = request.body;
+  const userId = request.user.id;
+
+  if (!Array.isArray(tasks)) {
+    return response
+      .status(400)
+      .json({ error: "Request body must be an array of tasks." });
+  }
+
+  const result = await taskService.syncTasks(userId, tasks);
+
+  if (!result.success) {
+    // A 500 status might be too general, but it's a safe default for server-side failures.
+    return response
+      .status(500)
+      .json({ error: result.message, details: result.error });
+  }
+
+  // A 200 OK is appropriate for a successful sync, which can include partial failures.
+  response.status(200).json(result);
+});
+
 export default {
   getAllTasks,
   createTask,
   deleteTask,
   updateTask,
+  syncTasks,
 };

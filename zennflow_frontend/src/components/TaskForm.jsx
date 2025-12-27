@@ -6,6 +6,8 @@ const TaskForm = () => {
   const createTask = useCreateTask();
 
   const addTask = (event) => {
+    console.log("hit the task handler");
+
     event.preventDefault();
     if (!title.trim()) return;
 
@@ -17,6 +19,7 @@ const TaskForm = () => {
     };
 
     createTask.mutate(newTask);
+    console.log("created task:", newTask);
     setTitle("");
   };
 
@@ -35,4 +38,3 @@ const TaskForm = () => {
 };
 
 export default TaskForm;
-

@@ -7,23 +7,23 @@ const Task = () => {
 
   return (
     <div className="fixed bottom-4 right-4 z-50">
-      {open && (
-        <div className="absolute bottom-10 right-0 w-96 bg-white shadow-lg rounded-xl border border-gray-200 p-4">
-          <div className="flex justify-between items-center mb-4">
-            <h3 className="font-semibold">New Tasks</h3>
-            <button
-              onClick={() => setOpen(false)}
-              className="text-gray-500 text-sm"
-            >
-              x
-            </button>
-          </div>
-
-          <div className="space-y-2">
-            <TaskForm />
-            <TaskList />
-          </div>
+      open && (
+      <div className="absolute bottom-10 right-0 w-96 bg-white shadow-lg rounded-xl border border-gray-200 p-4">
+        <div className="flex justify-between items-center mb-4">
+          <h3 className="font-semibold">New Tasks</h3>
+          <button
+            onClick={() => setOpen(false)}
+            className="text-gray-500 text-sm"
+          >
+            x
+          </button>
         </div>
+
+        <div className="space-y-2">
+          <TaskForm />
+          <TaskList />
+        </div>
+      </div>
       )}
       <button
         onClick={() => setOpen(!open)}
@@ -36,4 +36,3 @@ const Task = () => {
 };
 
 export default Task;
-

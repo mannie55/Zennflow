@@ -4,20 +4,21 @@
   "description": "Focus better with a clean dashboard and a dedicated focus mode.",
   "version": "1.0.0",
   "action": {
-    "default_title": "ZennFlow"
+    "default_title": "ZennFlow",
+    "default_popup": "index.html"
   },
   "chrome_url_overrides": {
-    "newtab": "./dist/index.html"
+    "newtab": "index.html"
   },
   "background": {
-    "service_worker": "background.js",
+    "service_worker": "./src/background.js",
     "type": "module"
   },
   "permissions": ["storage", "alarms", "notifications"],
   "host_permissions": [],
   "icons": {
-    "16": "./dist/icons.png",
-    "48": "./dist/icons.png",
-    "128": "./dist/icons.png"
+    "16": "public/icons.png",
+    "48": "public/icons.png",
+    "128": "public/icons.png"
   }
 }

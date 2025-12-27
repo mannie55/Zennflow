@@ -13,6 +13,8 @@ const getAll = async () => {
 };
 
 const create = async (newTaskObject) => {
+  console.log("hit here", newTaskObject);
+  
   const response = await api.post("", newTaskObject);
   return response.data;
 };

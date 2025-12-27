@@ -1,4 +1,4 @@
-import { SyncService } from "./src/services/SyncService.js";
+import { SyncService } from "./services/SyncService.js";
 
 chrome.runtime.onInstalled.addListener(() => {
   chrome.storage.local.set({ timerStatus: "idle", endTime: null });
@@ -38,7 +38,7 @@ chrome.alarms.onAlarm.addListener((alarm) => {
 
     chrome.notifications.create({
       type: "basic",
-      iconUrl: "./dist/icons.png",
+      iconUrl: "public/icons.png",
       title: "ZennFlow",
       message: "Focus session complete! Great work.",
     });
