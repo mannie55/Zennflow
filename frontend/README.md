@@ -1,51 +1,86 @@
-# React + Vite + CRXJS
+# Zennflow Frontend
 
-This template helps you quickly start developing Chrome extensions with React and Vite. It includes the CRXJS Vite plugin for seamless Chrome extension development.
+This is the frontend for Zennflow, a developer-centric productivity and organization tool. It is a Chrome Extension built with React and Vite.
 
-## Features
+## Tech Stack
 
-- React with modern syntax
-- Vite build tool
-- CRXJS Vite plugin integration
-- Chrome extension manifest configuration
+- **Framework**: [React](https://reactjs.org/)
+- **Build Tool**: [Vite](https://vitejs.dev/)
+- **Styling**: [Tailwind CSS](https://tailwindcss.com/)
+- **Data Fetching**: [React Query](https://tanstack.com/query/v5) & [Axios](https://axios-http.com/)
+- **Routing**: [React Router](https://reactrouter.com/)
+- **Chrome Extension Tooling**: [@crxjs/vite-plugin](https://crxjs.dev/vite-plugin)
 
-## Quick Start
+## Directory Structure
 
-1. Install dependencies:
+The frontend codebase is organized as follows:
 
-```bash
-npm install
+```
+frontend/
+├───public/         # Static assets
+├───src/            # Source code
+│   ├───apiService/   # Functions for making API calls
+│   ├───assets/       # Images, icons, etc.
+│   ├───components/   # Reusable React components
+│   ├───content/      # Content scripts for the Chrome extension
+│   ├───context/      # React context providers
+│   ├───hooks/        # Custom React hooks
+│   ├───newTab/       # Code for the new tab page
+│   ├───pages/        # Top-level page components
+│   ├───popup/        # Code for the extension's popup
+│   └───services/     # Business logic services
+├───vite.config.js  # Vite configuration
+└───manifest.config.js # Configuration for the Chrome extension manifest
 ```
 
-2. Start development server:
+## Getting Started
 
-```bash
-npm run dev
-```
+Follow these instructions to get the frontend running on your local machine for development.
 
-3. Open Chrome and navigate to `chrome://extensions/`, enable "Developer mode", and load the unpacked extension from the `dist` directory.
+### Prerequisites
 
-4. Build for production:
+- [Node.js](https://nodejs.org/) (v14 or higher)
+
+### Installation & Setup
+
+1.  **Clone the repository** (if you haven't already).
+
+2.  **Navigate to the frontend directory**:
+    ```bash
+    cd frontend
+    ```
+
+3.  **Install dependencies**:
+    ```bash
+    npm install
+    ```
+
+4.  **Start the development server**:
+    ```bash
+    npm run dev
+    ```
+
+### Loading the Extension in Chrome
+
+1.  Open Chrome and navigate to `chrome://extensions`.
+2.  Enable "Developer mode" in the top right corner.
+3.  Click "Load unpacked".
+4.  Select the `frontend/dist` directory. The `dist` directory is generated when you run `npm run dev` or `npm run build`.
+
+## Available Scripts
+
+In the project directory, you can run:
+
+-   **`npm run dev`**: Runs the app in development mode using Vite. This will also create the `dist` folder for the unpacked extension.
+-   **`npm run build`**: Builds the app for production to the `dist` folder.
+-   **`npm run preview`**: Serves the production build locally for preview.
+
+## Building for Production
+
+To create a production-ready build of the extension, run:
 
 ```bash
 npm run build
 ```
 
-## Project Structure
-
-- `src/popup/` - Extension popup UI
-- `src/content/` - Content scripts
-- `manifest.config.js` - Chrome extension manifest configuration
-
-## Documentation
-
-- [React Documentation](https://reactjs.org/)
-- [Vite Documentation](https://vitejs.dev/)
-- [CRXJS Documentation](https://crxjs.dev/vite-plugin)
-
-## Chrome Extension Development Notes
-
-- Use `manifest.config.js` to configure your extension
-- The CRXJS plugin automatically handles manifest generation
-- Content scripts should be placed in `src/content/`
-- Popup UI should be placed in `src/popup/`
+This will create a `dist` folder with the optimized and minified production code. You can then zip this folder to upload to the Chrome Web Store.
