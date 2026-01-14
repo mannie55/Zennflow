@@ -7,7 +7,7 @@ const tasksRouter = express.Router();
 // GET all tasks for the logged-in user
 tasksRouter.get("/", userExtractor, taskController.getAllTasks);
 
-// SYNC tasks for the logged-in user
+// SYNC tasks for the logged-in user (handles create, update, delete)
 tasksRouter.post("/sync", userExtractor, taskController.syncTasks);
 
 // DELETE a task by id

@@ -1,75 +1,68 @@
 import Task from "../models/task.js";
+import logger from "../utils/logger.js";
 
+/**
+ * Get all tasks for a user
+ */
 const getAllTasks = async (userId) => {
-  return await Task.find({ user: userId });
-};
-
-const createTask = async (userId, { title, description }) => {
-  if (!title) {
-    throw new Error("title is missing");
+  if (!userId) {
+    throw new Error("User ID is required");
   }
-
-  const task = new Task({
-    title,
-    description: description || null,
-    completed: false,
-    user: userId,
-  });
-
-  return await task.save();
+  return await Task.find({ user: userId }).sort({ createdAt: -1 });
 };
 
+/**
+ * Delete a task by id
+ */
 const deleteTask = async (userId, taskId) => {
-  const task = await Task.findById(taskId);
+  if (!taskId) {
+    throw new Error("Task ID is required");
+  }
+
+  const task = await Task.findOne({ user: userId, id: taskId });
 
   if (!task) {
     throw new Error("Task not found");
   }
 
-  if (task.user.toString() !== userId) {
-    throw new Error("User not authorized to delete this task");
-  }
-
-  await Task.findByIdAndDelete(taskId);
+  await Task.deleteOne({ user: userId, id: taskId });
 };
 
-const updateTask = async (userId, taskId, updateData) => {
-  const task = await Task.findById(taskId);
-
-  if (!task) {
-    throw new Error("Task not found");
-  }
-
-  if (task.user.toString() !== userId) {
-    throw new Error("User not authorized to update this task");
-  }
-
-  return await Task.findByIdAndUpdate(taskId, updateData, {
-    new: true,
-    runValidators: true,
-  });
-};
-
+/**
+ * Sync tasks using offline-first pattern
+ * Handles batch creation and updates with timestamp-based conflict resolution
+ */
 const syncTasks = async (userId, incomingTasks) => {
-  if (!Array.isArray(incomingTasks)) {
+  if (!userId) {
     return {
       success: false,
-      message: 'Invalid request: incomingTasks must be an array.',
+      message: "User ID is required",
     };
   }
 
-  const incomingTaskIds = incomingTasks.map((t) => t.id).filter(id => id);
+  if (!Array.isArray(incomingTasks)) {
+    return {
+      success: false,
+      message: "Request body must be an array of tasks.",
+    };
+  }
+
+  // Filter out tasks with no id field
+  const incomingTaskIds = incomingTasks.map((t) => t.id).filter((id) => id);
 
   if (incomingTaskIds.length === 0) {
     return {
       success: true,
-      message: 'No tasks with IDs to sync.',
       created: [],
       updated: [],
-      failed: [],
+      failed: incomingTasks.map((t) => ({
+        task: t,
+        reason: "Missing required id field.",
+      })),
     };
   }
 
+  // Fetch existing tasks for this user
   const existingTasks = await Task.find({
     user: userId,
     id: { $in: incomingTaskIds },
@@ -81,15 +74,57 @@ const syncTasks = async (userId, incomingTasks) => {
   const failedTasks = [];
 
   for (const incomingTask of incomingTasks) {
-    // Basic validation for core fields
-    if (!incomingTask.id || !incomingTask.updated_at || !incomingTask.createdAt) {
-      failedTasks.push({ task: incomingTask, reason: 'Missing required fields (id, updated_at, createdAt).' });
+    // Validate required fields
+    if (!incomingTask.id) {
+      failedTasks.push({
+        task: incomingTask,
+        reason: "Missing required field: id.",
+      });
+      continue;
+    }
+
+    if (
+      incomingTask.updated_at === undefined ||
+      incomingTask.updated_at === null
+    ) {
+      failedTasks.push({
+        task: incomingTask,
+        reason: "Missing required field: updated_at.",
+      });
+      continue;
+    }
+
+    if (
+      incomingTask.createdAt === undefined ||
+      incomingTask.createdAt === null
+    ) {
+      failedTasks.push({
+        task: incomingTask,
+        reason: "Missing required field: createdAt.",
+      });
+      continue;
+    }
+
+    // Validate field types
+    if (typeof incomingTask.id !== "string") {
+      failedTasks.push({
+        task: incomingTask,
+        reason: "Field 'id' must be a string.",
+      });
+      continue;
+    }
+
+    if (typeof incomingTask.completed !== "boolean") {
+      failedTasks.push({
+        task: incomingTask,
+        reason: "Field 'completed' must be a boolean.",
+      });
       continue;
     }
 
     const taskData = {
       id: incomingTask.id,
-      description: incomingTask.description,
+      description: incomingTask.description || "",
       completed: incomingTask.completed,
       client_updated_at: new Date(incomingTask.updated_at),
       createdAt: new Date(incomingTask.createdAt),
@@ -99,11 +134,13 @@ const syncTasks = async (userId, incomingTasks) => {
     const existingTask = existingTasksMap.get(incomingTask.id);
 
     if (!existingTask) {
+      // New task - insert it
       tasksToInsert.push(taskData);
     } else {
+      // Existing task - check timestamps for conflict resolution
       const incomingTimestamp = new Date(incomingTask.updated_at);
       if (incomingTimestamp > existingTask.client_updated_at) {
-        // Ensure immutable fields are not updated
+        // Client's version is newer - update
         const { createdAt, id, user, ...updateData } = taskData;
         updateOperations.push({
           updateOne: {
@@ -112,6 +149,7 @@ const syncTasks = async (userId, incomingTasks) => {
           },
         });
       }
+      // If client's version is older or equal, silently ignore (no error)
     }
   }
 
@@ -122,22 +160,25 @@ const syncTasks = async (userId, incomingTasks) => {
 
   try {
     if (tasksToInsert.length > 0) {
-      const inserted = await Task.insertMany(tasksToInsert, { ordered: false });
-      results.created = inserted.map(t => t.id);
+      const inserted = await Task.insertMany(tasksToInsert, {
+        ordered: false,
+      });
+      results.created = inserted.map((t) => t.id);
+      logger.info(`Sync: Created ${inserted.length} tasks`);
     }
 
     if (updateOperations.length > 0) {
-      const bulkResult = await Task.bulkWrite(updateOperations, { ordered: false });
-      if (bulkResult.isOk()) {
-        results.updated = updateOperations.map(op => op.updateOne.filter.id);
-      }
+      const bulkResult = await Task.bulkWrite(updateOperations, {
+        ordered: false,
+      });
+      results.updated = updateOperations.map((op) => op.updateOne.filter.id);
+      logger.info(`Sync: Updated ${bulkResult.modifiedCount} tasks`);
     }
   } catch (error) {
-    // Basic error handling. In a real app, you'd want more specific logic
-    // to identify which specific tasks failed during batch operations.
+    logger.error("Sync error:", error.message);
     return {
       success: false,
-      message: 'An error occurred during synchronization.',
+      message: "An error occurred during synchronization.",
       error: error.message,
     };
   }
@@ -149,5 +190,8 @@ const syncTasks = async (userId, incomingTasks) => {
   };
 };
 
-
-export default { getAllTasks, createTask, deleteTask, updateTask, syncTasks };
+export default {
+  getAllTasks,
+  deleteTask,
+  syncTasks,
+};

@@ -1,4 +1,4 @@
-import mongoose from 'mongoose';
+import mongoose from "mongoose";
 
 const taskSchema = new mongoose.Schema(
   {
@@ -6,36 +6,42 @@ const taskSchema = new mongoose.Schema(
       type: String,
       required: true,
       unique: true, // This will be the primary key since _id is false
+      index: true, // Index for fast lookups
     },
     description: {
       type: String,
+      default: "",
     },
     completed: {
       type: Boolean,
       default: false,
+      index: true, // Index for filtering by status
     },
     user: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'User',
+      ref: "User",
+      required: true,
+      index: true, // Index for finding user's tasks
     },
     client_updated_at: {
       type: Date,
       required: true,
+      index: true, // Index for conflict resolution queries
     },
     createdAt: {
       type: Date,
       required: true,
       immutable: true, // Ensure client-sent createdAt is not changed
-    }
+    },
   },
   {
     // Use Mongoose's timestamps to get server_updated_at automatically
-    timestamps: { createdAt: false, updatedAt: 'server_updated_at' },
+    timestamps: { createdAt: false, updatedAt: "server_updated_at" },
     _id: false, // Disable Mongoose's default _id
     versionKey: false, // Disable the __v field
   }
 );
 
-const Task = mongoose.model('Task', taskSchema);
+const Task = mongoose.model("Task", taskSchema);
 
 export default Task;

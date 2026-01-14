@@ -1,5 +1,5 @@
 import axios from "axios";
-const baseUrl = "http://localhost:3000/tasks";
+const baseUrl = "http://localhost:3001/api/tasks";
 
 // CHROME EXTENSION: Use fetch adapter for Service Worker compatibility
 const api = axios.create({
@@ -7,40 +7,26 @@ const api = axios.create({
   adapter: "fetch",
 });
 
-const getAll = async () => {
-  const response = await api.get("");
-  return response.data;
-};
-
-const create = async (newTaskObject) => {
-  const response = await api.post("", newTaskObject);
-  return response;
-};
-
-const remove = async (object) => {
-  const response = await api.delete(`/${object.id}`);
-  return response;
-};
-
-const update = async (object) => {
-  try {
-    const response = await api.put(`/${object.id}`, object);
-    return response;
-  } catch (error) {
-    // If the server responds with an error (e.g., 409 Conflict),
-    // axios throws an exception. We catch it and return the error response
-    // so the background script can handle it.
-    if (error.response) {
-      return error.response;
-    }
-    // Re-throw if it's a network error or something else
-    throw error;
+// Add auth token to all requests
+api.interceptors.request.use((config) => {
+  // Get the token from localStorage if it exists
+  const token = localStorage.getItem("token");
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
   }
-};
+  return config;
+});
 
-const getById = async (id) => {
+/**
+ * Syncs a batch of tasks to the backend using the offline-first sync endpoint.
+ * This is the ONLY way tasks are communicated to the server.
+ *
+ * @param {Array} tasksToSync - Array of tasks with id, description, completed, createdAt, updated_at
+ * @returns {Promise} Response from /api/tasks/sync
+ */
+const sync = async (tasksToSync) => {
   try {
-    const response = await api.get(`/${id}`);
+    const response = await api.post("/sync", tasksToSync);
     return response;
   } catch (error) {
     if (error.response) {
@@ -50,4 +36,18 @@ const getById = async (id) => {
   }
 };
 
-export default { getAll, create, remove, update, getById };
+/**
+ * Seeds initial data from backend (for fresh installs).
+ * Attempts to fetch all tasks if local storage is empty.
+ */
+const seedFromBackend = async () => {
+  try {
+    const response = await api.get("");
+    return response.data;
+  } catch (error) {
+    console.error("Failed to seed data from backend:", error.message);
+    return [];
+  }
+};
+
+export default { sync, seedFromBackend };

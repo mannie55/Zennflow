@@ -2,9 +2,10 @@ import jwt from "jsonwebtoken";
 import User from "../models/user.js";
 
 /**
- * Generates a JWT for a given user.
- * @param {object} user - The user object from the database.
- * @returns {string} The generated JWT.
+ * Generates a JWT token for a given user
+ * Token expires in 1 hour
+ * @param {Object} user - The user object from the database
+ * @returns {string} The generated JWT
  */
 const generateToken = (user) => {
   const userForToken = { username: user.username, id: user._id };
@@ -14,19 +15,21 @@ const generateToken = (user) => {
 };
 
 /**
- * Generates a unique username based on a base name.
- * If the base name is taken, it appends a number until a unique name is found.
- * @param {string} baseUsername - The desired base username.
- * @returns {Promise<string>} A unique username.
+ * Generates a unique username based on a base name
+ * If the base name is taken, appends a number until unique
+ * @param {string} baseUsername - The desired base username
+ * @returns {Promise<string>} A unique username
  */
 const generateUniqueUsername = async (baseUsername) => {
   let username = baseUsername;
   let counter = 1;
-  // eslint-disable-next-line no-await-in-loop
+
+  // Keep trying until we find a unique username
   while (await User.findOne({ username })) {
     username = `${baseUsername}${counter}`;
     counter += 1;
   }
+
   return username;
 };
 

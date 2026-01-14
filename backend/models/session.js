@@ -1,34 +1,46 @@
 import mongoose from "mongoose";
 
-const sessionSchema = new mongoose.Schema({
-  duration: {
-    type: Number,
-    required: true,
+const sessionSchema = new mongoose.Schema(
+  {
+    duration: {
+      type: Number,
+      required: true,
+      min: 1, // Duration must be at least 1ms
+    },
+    startTime: {
+      type: Date,
+      required: true,
+      index: true,
+    },
+    endTime: {
+      type: Date,
+    },
+    focusedTime: {
+      type: Number,
+      required: true,
+      default: 0,
+      min: 0,
+    },
+    completed: {
+      type: Boolean,
+      default: false,
+      index: true,
+    },
+    user: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+      index: true, // Index for finding user's sessions
+    },
+    task: {
+      type: String, // Reference Task's id field, not MongoDB _id
+      ref: "Task",
+    },
   },
-  startTime: {
-    type: Date,
-    required: true,
-  },
-  endTime: {
-    type: Date,
-  },
-  focusedTime: {
-    type: Number,
-    required: true,
-  },
-  completed: {
-    type: Boolean,
-    default: false,
-  },
-  user: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "User",
-  },
-  task: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "Task",
-  },
-});
+  {
+    timestamps: true, // createdAt, updatedAt
+  }
+);
 
 sessionSchema.set("toJSON", {
   transform: (document, returnedObject) => {

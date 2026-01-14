@@ -14,12 +14,17 @@ const seedDataFromBackend = async () => {
   if (localData.tasks.length === 0) {
     console.log("Local storage is empty. Seeding data from backend...");
     try {
-      const backendTasks = await taskApi.getAll();
+      const backendTasks = await taskApi.seedFromBackend();
       if (backendTasks && backendTasks.length > 0) {
         // Mark all fetched tasks as synced before storing them
-        const tasksToStore = backendTasks.map(task => ({ ...task, synced: true }));
+        const tasksToStore = backendTasks.map((task) => ({
+          ...task,
+          synced: true,
+        }));
         await chrome.storage.local.set({ tasks: tasksToStore });
-        console.log(`Successfully seeded ${tasksToStore.length} tasks from the backend.`);
+        console.log(
+          `Successfully seeded ${tasksToStore.length} tasks from the backend.`
+        );
       } else {
         console.log("Backend has no tasks to seed.");
       }
@@ -36,28 +41,94 @@ const seedDataFromBackend = async () => {
   }
 };
 
-
 // === GLOBAL SYNC TRIGGER ===
 
 /**
  * The main function to trigger a full sync of all unsynced tasks.
- * It gets all tasks, finds the ones that need syncing, and processes them.
+ * Batches all unsynced tasks and sends them in a single request to /api/tasks/sync.
+ * The server handles creation, updates, and deletion based on task state.
  */
 const syncAllUnsyncedTasks = async () => {
   console.log("Checking for unsynced tasks...");
   const allTasks = (await chrome.storage.local.get({ tasks: [] })).tasks;
-  const unsyncedTasks = allTasks.filter((task) => !task.synced);
 
-  if (unsyncedTasks.length > 0) {
-    console.log(`Found ${unsyncedTasks.length} unsynced tasks. Syncing now...`);
-    // Process tasks one by one to avoid race conditions
-    for (const task of unsyncedTasks) {
-      await syncTask(task);
-    }
-    console.log("Finished sync cycle.");
-  } else {
+  // Separate tasks into active and deleted
+  const unsyncedTasks = allTasks.filter((task) => !task.synced);
+  const activeTasks = unsyncedTasks.filter((task) => !task.deleted);
+  const deletedTasks = unsyncedTasks.filter((task) => task.deleted);
+
+  if (unsyncedTasks.length === 0) {
     console.log("All tasks are up to date.");
+    return;
   }
+
+  console.log(
+    `Found ${unsyncedTasks.length} unsynced tasks. Syncing in batch...`
+  );
+  console.log(`  - ${activeTasks.length} to create/update`);
+  console.log(`  - ${deletedTasks.length} to delete`);
+
+  try {
+    // Prepare payload: send all unsynced tasks to the sync endpoint
+    const syncPayload = unsyncedTasks.map((task) => ({
+      id: task.id,
+      description: task.description,
+      completed: task.completed,
+      createdAt: task.createdAt,
+      updated_at: task.updated_at,
+      // deleted flag is handled by the client-side logic below
+    }));
+
+    // Call the batch sync endpoint
+    const syncResponse = await taskApi.sync(syncPayload);
+
+    if (syncResponse.status === 200 && syncResponse.data.success) {
+      // Sync succeeded! Mark all synced tasks and handle deletions
+      console.log("Batch sync successful:", syncResponse.data);
+
+      const updatedTasks = allTasks
+        .map((task) => {
+          if (!task.synced) {
+            if (task.deleted) {
+              // Task was deleted and synced - remove it from storage
+              return null; // Mark for removal
+            } else {
+              // Task was created/updated and synced - mark it as synced
+              return { ...task, synced: true };
+            }
+          }
+          return task; // Already synced, no change
+        })
+        .filter((task) => task !== null); // Remove deleted tasks
+
+      await chrome.storage.local.set({ tasks: updatedTasks });
+      console.log("Local storage updated. All synced tasks marked as synced.");
+    } else {
+      console.error(
+        "Batch sync failed or returned unexpected response:",
+        syncResponse
+      );
+
+      // Handle partial failures if any tasks were rejected
+      if (
+        syncResponse.data &&
+        syncResponse.data.failed &&
+        syncResponse.data.failed.length > 0
+      ) {
+        console.warn("Some tasks failed to sync:", syncResponse.data.failed);
+        syncResponse.data.failed.forEach((failedTask) => {
+          console.warn(
+            `Task ${failedTask.task.id} failed: ${failedTask.reason}`
+          );
+        });
+      }
+    }
+  } catch (error) {
+    console.error("Network error during batch sync:", error.message);
+    // Don't mark tasks as synced on failure - they'll retry next time
+  }
+
+  console.log("Finished sync cycle.");
 };
 
 // === EVENT LISTENERS ===
@@ -89,87 +160,6 @@ self.addEventListener("online", () => {
   syncAllUnsyncedTasks();
 });
 
-
 // === CORE SYNC LOGIC ===
-
-/**
- * Orchestrates the synchronization of a single task with the backend.
- * It handles creation, updates, and deletion.
- * @param {object} task The task object to sync.
- */
-const syncTask = async (task) => {
-  // Get the most recent state of all tasks before proceeding
-  let allTasks = (await chrome.storage.local.get({ tasks: [] })).tasks;
-  const taskIndex = allTasks.findIndex((t) => t.id === task.id);
-  
-  // The task might have been deleted and hard-removed by another sync cycle
-  // while this one was in progress.
-  if (taskIndex === -1) {
-    console.log(`Task ${task.id} no longer exists locally. Skipping sync.`);
-    return;
-  }
-
-  // Also, the task might have been updated and synced by another process.
-  // Re-check the synced flag on the latest version of the task.
-  if (allTasks[taskIndex].synced) {
-     console.log(`Task ${task.id} is already synced. Skipping sync.`);
-     return;
-  }
-
-  // Case 1: Task is marked for deletion
-  if (task.deleted) {
-    console.log("Attempting to delete task from backend:", task);
-    const response = await taskApi.remove(task);
-    if (response.status === 200) {
-      console.log("Backend deletion successful. Hard deleting locally:", task.id);
-      allTasks.splice(taskIndex, 1); // Permanently remove from local storage
-    } else {
-      console.error("Failed to delete task on backend. Status:", response.status, "Response:", response.data);
-      return; // Do not update storage, let it retry
-    }
-  } else {
-    // Case 2: Task is created or updated
-    const checkResponse = await taskApi.getById(task.id);
-
-    if (checkResponse.status === 404) {
-      // Task does not exist on backend, so create it
-      console.log("Task not found on backend. Creating:", task);
-      const createResponse = await taskApi.create(task);
-      if (createResponse.status === 201) {
-        allTasks[taskIndex] = { ...createResponse.data, synced: true };
-        console.log("Task created and synced:", allTasks[taskIndex]);
-      } else {
-        console.error("Failed to create task on backend:", createResponse);
-        return; // Retry later
-      }
-    } else if (checkResponse.status === 200) {
-      // Task exists, so update it
-      console.log("Task found on backend. Updating:", task);
-      const updateResponse = await taskApi.update(task);
-
-      if (updateResponse.status === 200) {
-        allTasks[taskIndex] = { ...updateResponse.data, synced: true };
-        console.log("Task updated and synced:", allTasks[taskIndex]);
-      } else if (updateResponse.status === 409) {
-        // Conflict! Server's version is newer.
-        allTasks[taskIndex] = { ...updateResponse.data, synced: true };
-        console.warn("Conflict for task:", task.id, "Server version restored.");
-        chrome.notifications.create({
-          type: "basic",
-          iconUrl: "logo.png", // Assumes logo.png is in the extension's root
-          title: "Sync Conflict",
-          message: `Your change to "${updateResponse.data.description}" was overwritten. Your version: "${task.description}"`,
-        });
-      } else {
-        console.error("Failed to update task on backend:", updateResponse);
-        return; // Retry later
-      }
-    } else {
-      console.error("Unhandled status when checking task:", checkResponse);
-      return; // Retry later
-    }
-  }
-
-  // Finally, save the updated tasks array back to storage
-  await chrome.storage.local.set({ tasks: allTasks });
-};
+// Batch syncing is handled by syncAllUnsyncedTasks() which sends all unsynced tasks
+// to the backend in a single request to /api/tasks/sync
