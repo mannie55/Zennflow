@@ -8,11 +8,15 @@ const api = axios.create({
 });
 
 // Add auth token to all requests
-api.interceptors.request.use((config) => {
-  // Get the token from localStorage if it exists
-  const token = localStorage.getItem("token");
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
+api.interceptors.request.use(async (config) => {
+  // Get the token from chrome.storage.local if it exists
+  try {
+    const result = await chrome.storage.local.get("token");
+    if (result && result.token) {
+      config.headers.Authorization = `Bearer ${result.token}`;
+    }
+  } catch (error) {
+    console.error("Failed to retrieve token from chrome.storage.local:", error);
   }
   return config;
 });

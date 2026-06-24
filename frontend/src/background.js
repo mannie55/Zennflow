@@ -76,7 +76,7 @@ const syncAllUnsyncedTasks = async () => {
       completed: task.completed,
       createdAt: task.createdAt,
       updated_at: task.updated_at,
-      // deleted flag is handled by the client-side logic below
+      deleted: task.deleted || false,
     }));
 
     // Call the batch sync endpoint

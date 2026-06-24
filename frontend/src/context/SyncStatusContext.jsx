@@ -1,6 +1,4 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
-import { useQuery } from "@tanstack/react-query";
-import taskService from "../services/taskService";
 
 const SyncStatusContext = createContext();
 
@@ -10,8 +8,9 @@ export const useSyncStatus = () => {
 
 export const SyncStatusProvider = ({ children }) => {
   const [isOnline, setIsOnline] = useState(navigator.onLine);
+  const [hasUnsyncedTasks, setHasUnsyncedTasks] = useState(false);
 
-  // Listen to online/offline events
+  // Listen to online/offline events and storage changes
   useEffect(() => {
     const handleOnline = () => setIsOnline(true);
     const handleOffline = () => setIsOnline(false);
@@ -19,21 +18,29 @@ export const SyncStatusProvider = ({ children }) => {
     window.addEventListener("online", handleOnline);
     window.addEventListener("offline", handleOffline);
 
+    // Initial check for unsynced tasks (checks all tasks including soft-deleted ones)
+    chrome.storage.local.get({ tasks: [] }, (result) => {
+      const unsynced = result.tasks.some((task) => !task.synced);
+      setHasUnsyncedTasks(unsynced);
+    });
+
+    // Reactive listener for storage changes
+    const handleStorageChange = (changes, namespace) => {
+      if (namespace === "local" && changes.tasks) {
+        const unsynced =
+          changes.tasks.newValue?.some((task) => !task.synced) || false;
+        setHasUnsyncedTasks(unsynced);
+      }
+    };
+
+    chrome.storage.onChanged.addListener(handleStorageChange);
+
     return () => {
       window.removeEventListener("online", handleOnline);
       window.removeEventListener("offline", handleOffline);
+      chrome.storage.onChanged.removeListener(handleStorageChange);
     };
   }, []);
-
-  // Query tasks to check for unsynced items
-  const { data: tasks } = useQuery({
-    queryKey: ["tasks"],
-    queryFn: taskService.getAllTasks,
-    // Refetch on a schedule to check for sync status changes from background
-    refetchInterval: 5000, 
-  });
-
-  const hasUnsyncedTasks = tasks?.some(task => !task.synced);
 
   let status = "Up to Date";
   if (!isOnline) {

@@ -71,9 +71,23 @@ const syncTasks = async (userId, incomingTasks) => {
   const existingTasksMap = new Map(existingTasks.map((t) => [t.id, t]));
   const tasksToInsert = [];
   const updateOperations = [];
+  const tasksToDelete = [];
   const failedTasks = [];
 
   for (const incomingTask of incomingTasks) {
+    // If marked for deletion, collect id and skip other checks
+    if (incomingTask.deleted === true) {
+      if (incomingTask.id) {
+        tasksToDelete.push(incomingTask.id);
+      } else {
+        failedTasks.push({
+          task: incomingTask,
+          reason: "Missing required field: id for deletion.",
+        });
+      }
+      continue;
+    }
+
     // Validate required fields
     if (!incomingTask.id) {
       failedTasks.push({
@@ -156,9 +170,16 @@ const syncTasks = async (userId, incomingTasks) => {
   const results = {
     created: [],
     updated: [],
+    deleted: [],
   };
 
   try {
+    if (tasksToDelete.length > 0) {
+      await Task.deleteMany({ user: userId, id: { $in: tasksToDelete } });
+      results.deleted = tasksToDelete;
+      logger.info(`Sync: Deleted ${tasksToDelete.length} tasks`);
+    }
+
     if (tasksToInsert.length > 0) {
       const inserted = await Task.insertMany(tasksToInsert, {
         ordered: false,

@@ -9,13 +9,12 @@ export default defineManifest({
     48: "public/logo.png",
   },
   permissions: [
-    "sidePanel",
     "storage",
     "unlimitedStorage",
     "alarms",
     "notifications",
   ],
-  host_permissions: ["http://localhost:3000/*"],
+  host_permissions: ["http://localhost:3001/*"],
   action: {
     default_icon: {
       48: "public/logo.png",
@@ -30,9 +29,6 @@ export default defineManifest({
       matches: ["https://*/*"],
     },
   ],
-  side_panel: {
-    default_path: "src/sidepanel/index.html",
-  },
   background: {
     service_worker: "src/background.js",
     type: "module",

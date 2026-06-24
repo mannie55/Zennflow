@@ -11,6 +11,7 @@ import {
 import usersRouter from "./routes/users.js";
 import tasksRouter from "./routes/tasks.js";
 import sessionsRouter from "./routes/sessions.js";
+import authRouter from "./routes/auth.js";
 
 dotenv.config();
 
@@ -29,6 +30,7 @@ app.use(tokenExtractor);
 app.use("/api/users", usersRouter);
 app.use("/api/tasks", tasksRouter);
 app.use("/api/sessions", sessionsRouter);
+app.use("/api/auth", authRouter);
 
 // Error handling
 app.use(unknownEndpoint);
